@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node src/server/app.ts",
-    "dev": "node --watch --loader ts-node/esm --experimental-specifier-resolution=node src/server/app.ts",
+    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node src/server/index.ts",
+    "dev": "node --watch --loader ts-node/esm --experimental-specifier-resolution=node src/server/index.ts",
     "test": "vitest run --reporter=verbose",
     "test:coverage": "vitest --coverage",
     "lint": "eslint --fix",

@@ -1,9 +1,12 @@
 import TestAppFactory from "./test-app-factory"
 import { describe } from "vitest"
 
-type TestCallback = (factory: TestAppFactory) => void | Promise<void>
+type TestFactoryCallback = (factory: TestAppFactory) => void | Promise<void>
 
-export function describeTestCase(name: string, testCallback: TestCallback) {
+export function describeTestCase(
+  name: string,
+  testCallback: TestFactoryCallback,
+) {
   const appFactory = new TestAppFactory()
 
   return describe(name, () => {
