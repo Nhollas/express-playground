@@ -1,37 +1,24 @@
 import { server } from "@/test/mock-service-worker/server"
-import TestAppFactory from "@/test/setup/test-app-factory"
 import { http, HttpResponse } from "msw"
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest"
+import { expect } from "vitest"
+import { describeTestCase } from "@/test/setup/describe-test-case"
 
-describe("External Service Dependency Integration Tests", () => {
-  let factory: TestAppFactory
+describeTestCase(
+  "External Service Dependency Integration Tests",
+  (appFactory) => {
+    test("should return user profile when authenticated", async () => {
+      const mockedResponse = { items: [{ name: "Item 1" }] }
 
-  beforeAll(async () => {
-    factory = new TestAppFactory()
-    await factory.initialize()
-  })
+      server.use(
+        http.get("https://localhost:8080/api/posts", () =>
+          HttpResponse.json(mockedResponse),
+        ),
+      )
+      const response = await appFactory.request
+        .get("/api/external/items")
+        .expect(200)
 
-  afterAll(async () => {
-    await factory.dispose()
-  })
-
-  beforeEach(async () => {
-    await factory.reset()
-  })
-
-  it("should return user profile when authenticated", async () => {
-    const mockedResponse = { items: [{ name: "Item 1" }] }
-
-    server.use(
-      http.get("https://localhost:8080/api/posts", () =>
-        HttpResponse.json(mockedResponse),
-      ),
-    )
-
-    const response = await factory.request
-      .get("/api/external/items")
-      .expect(200)
-
-    expect(response.body).toEqual(mockedResponse)
-  })
-})
+      expect(response.body).toEqual(mockedResponse)
+    })
+  },
+)

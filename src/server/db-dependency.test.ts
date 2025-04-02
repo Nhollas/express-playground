@@ -1,30 +1,46 @@
-import TestAppFactory from "@/test/setup/test-app-factory"
-import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest"
+import { expect } from "vitest"
+import { describeTestCase } from "@/test/setup/describe-test-case"
+import crypto from "crypto"
 
-describe("DB Dependency Integration Tests", () => {
-  let factory: TestAppFactory
-
-  beforeAll(async () => {
-    factory = new TestAppFactory()
-    await factory.initialize()
-  })
-
-  afterAll(async () => {
-    await factory.dispose()
-  })
-
-  beforeEach(async () => {
-    await factory.reset()
-  })
-
-  it("should return user profile when authenticated", async () => {
-    const db = factory.getDb()
-    const item = { name: "Item 1" }
+describeTestCase("DB Dependency Integration Tests", (appFactory) => {
+  test("should return items from the database 1", async () => {
+    const db = appFactory.getDb()
+    const item = { name: `Item ${crypto.randomUUID()}` }
 
     await db.collection("items").insertOne(item)
 
-    const response = await factory.request.get("/api/db/items").expect(200)
+    const response = await appFactory.request.get("/api/db/items").expect(200)
 
     expect(response.body).toEqual({ items: [{ name: item.name }] })
+  })
+
+  test("should return items from the database 2", async () => {
+    const db = appFactory.getDb()
+    const items = Array.from({ length: 5 }, () => ({
+      name: `Item ${crypto.randomUUID()}`,
+    }))
+
+    await db.collection("items").insertMany(items)
+
+    const response = await appFactory.request.get("/api/db/items").expect(200)
+
+    expect(response.body).toEqual({
+      items: items.map((item) => ({ name: item.name })),
+    })
+  })
+
+  test("should return items from the database 3", async () => {
+    const db = appFactory.getDb()
+    const items = Array.from({ length: 10 }, () => ({
+      name: `Item ${crypto.randomUUID()}`,
+    }))
+
+    await db.collection("items").insertMany(items)
+
+    const response = await appFactory.request.get("/api/db/items").expect(200)
+
+    expect(response.body).toEqual({
+      items: items.map((item) => ({ name: item.name })),
+    })
   })
 })
