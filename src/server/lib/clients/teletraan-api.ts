@@ -1,13 +1,13 @@
 import { fetchWrapper, IClient } from "."
+import env from "../env"
 
-export const NextApiClient: IClient = {
+export const TeletraanApiClient: IClient = {
   fetch: fetchWrapper({
-    baseUrl: "/api",
+    baseUrl: env.TELETRAAN_API_URL,
     defaultConfig: {
       headers: {
         "Content-Type": "application/json",
       },
     },
   }),
-  otelServiceName: "Create_Nhollas_App.Backend",
 }
