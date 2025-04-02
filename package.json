@@ -1,0 +1,36 @@
+{
+  "name": "ctm-express",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "test": "npm-run-all test:unit test:e2e",
+    "test:unit": "vitest run --reporter=verbose",
+    "test:e2e": "npm-run-all build playwright",
+    "test:coverage": "vitest --coverage",
+    "playwright": "playwright test",
+    "lint": "eslint --fix",
+    "typecheck": "tsc --project tsconfig.json --pretty --noEmit",
+    "format": "prettier --ignore-path .gitignore --write --list-different \"**/*.+(js|json|ts|tsx)\"",
+    "validate": "npm-run-all typecheck lint format",
+    "validate:test": "npm-run-all validate test"
+  },
+  "dependencies": {
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "eslint": "^9.22.0",
+    "eslint-config-prettier": "^10.1.1",
+    "eslint-plugin-prettier": "^5.2.3",
+    "eslint-plugin-vitest": "^0.5.4",
+    "typescript-eslint": "^8.26.1",
+    "msw": "^2.7.3",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}
