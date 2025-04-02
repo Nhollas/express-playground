@@ -4,16 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "nodemon src/server/index.ts",
-    "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node --loader ts-node/esm --experimental-specifier-resolution=node src/server/index.ts",
+    "dev": "node --watch --loader ts-node/esm --experimental-specifier-resolution=node src/server/index.ts",
     "test": "vitest run --reporter=verbose",
     "test:coverage": "vitest --coverage",
     "lint": "eslint --fix",
     "typecheck": "tsc --project tsconfig.json --pretty --noEmit",
-    "format": "prettier --ignore-path .gitignore --write --list-different \"**/*.+(js|json|ts|tsx)\"",
-    "validate": "npm-run-all typecheck lint format",
-    "validate:test": "npm-run-all validate test"
+    "format": "prettier --ignore-path .gitignore --write --list-different \"**/*.+(js|json|ts|tsx)\""
   },
   "dependencies": {
     "express": "^5.1.0",
@@ -27,8 +24,8 @@
     "eslint-plugin-prettier": "^5.2.3",
     "eslint-plugin-vitest": "^0.5.4",
     "msw": "^2.7.3",
-    "nodemon": "^3.1.9",
     "prettier": "^3.5.3",
+    "ts-node": "^10.9.2",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.26.1",
     "vitest": "^3.0.8"
