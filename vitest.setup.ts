@@ -1,8 +1,5 @@
-import "@testing-library/react"
-import "@testing-library/jest-dom/vitest"
-
 import { server } from "@/test/mock-service-worker/server"
 
-beforeAll(() => server.listen({ onUnhandledRequest: "warn" }))
+beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }))
 afterAll(() => server.close())
 afterEach(() => server.resetHandlers())

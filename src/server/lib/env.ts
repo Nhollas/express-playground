@@ -1,7 +1,11 @@
 import { z } from "zod"
+import { config } from "dotenv"
+
+config()
 
 const envSchema = z.object({
   TELETRAAN_API_URL: z.string().url(),
+  MONGODB_URL: z.string().url(),
 })
 
 const envResult = envSchema.safeParse(process.env)
