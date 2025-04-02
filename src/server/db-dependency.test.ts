@@ -1,11 +1,11 @@
-import PartnerHubApiFactory from "@/test/setup/partner-hub-test-api-factory"
+import TestAppFactory from "@/test/setup/test-app-factory"
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest"
 
 describe("DB Dependency Integration Tests", () => {
-  let factory: PartnerHubApiFactory
+  let factory: TestAppFactory
 
   beforeAll(async () => {
-    factory = new PartnerHubApiFactory()
+    factory = new TestAppFactory()
     await factory.initialize()
   })
 

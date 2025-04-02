@@ -2,7 +2,7 @@ import { MongoClient } from "mongodb"
 import express from "express"
 import type { Express } from "express"
 
-class PartnerHubApiFactory {
+class AppFactory {
   static create(dbClient: MongoClient): Express {
     const app = express()
 
@@ -33,4 +33,4 @@ class PartnerHubApiFactory {
   }
 }
 
-export default PartnerHubApiFactory
+export default AppFactory

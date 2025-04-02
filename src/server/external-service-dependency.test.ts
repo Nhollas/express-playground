@@ -1,13 +1,13 @@
 import { server } from "@/test/mock-service-worker/server"
-import PartnerHubApiFactory from "@/test/setup/partner-hub-test-api-factory"
+import TestAppFactory from "@/test/setup/test-app-factory"
 import { http, HttpResponse } from "msw"
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest"
 
 describe("External Service Dependency Integration Tests", () => {
-  let factory: PartnerHubApiFactory
+  let factory: TestAppFactory
 
   beforeAll(async () => {
-    factory = new PartnerHubApiFactory()
+    factory = new TestAppFactory()
     await factory.initialize()
   })
 
