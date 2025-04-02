@@ -1,4 +1,4 @@
-import PartnerHubApiFactory from "@/test/setup/partner-hub-api-factory"
+import PartnerHubApiFactory from "@/test/setup/partner-hub-test-api-factory"
 import { describe, it, expect, beforeAll, beforeEach, afterAll } from "vitest"
 
 describe("DB Dependency Integration Tests", () => {

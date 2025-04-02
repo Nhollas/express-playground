@@ -1,9 +1,9 @@
 import { MongoMemoryServer } from "mongodb-memory-server"
 import { MongoClient, Db } from "mongodb"
 import supertest from "supertest"
-import { createApp } from "@/server/app"
+import PartnerHubApiFactory from "@/server/partner-hub-api-factory"
 
-class PartnerHubApiFactory {
+class PartnerHubTestApiFactory {
   private mongoServer: MongoMemoryServer
   private mongoClient: MongoClient | null
   public request: ReturnType<typeof supertest>
@@ -21,7 +21,7 @@ class PartnerHubApiFactory {
     this.mongoClient = new MongoClient(mongoUri)
     await this.mongoClient.connect()
 
-    const expressApp = await createApp(this.mongoClient)
+    const expressApp = PartnerHubApiFactory.create(this.mongoClient)
     this.request = supertest(expressApp)
   }
 
@@ -52,4 +52,4 @@ class PartnerHubApiFactory {
   }
 }
 
-export default PartnerHubApiFactory
+export default PartnerHubTestApiFactory
