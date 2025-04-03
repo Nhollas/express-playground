@@ -1,19 +1,17 @@
 import { MongoClient, Db } from "mongodb"
 import supertest from "supertest"
 import ExpressAppFactory from "@/server/express-app-factory"
-import { inject } from "vitest"
 
 class ExpressTestAppFactory {
-  private mongoClient: MongoClient | null
+  private mongoClient: MongoClient
   public httpClient: ReturnType<typeof supertest>
 
   constructor() {
-    this.mongoClient = null
+    this.mongoClient = null!
     this.httpClient = null!
   }
 
-  initialize() {
-    const mongoUri = inject("mongoUri")
+  initialize(mongoUri: string) {
     this.mongoClient = new MongoClient(mongoUri)
 
     const expressApp = ExpressAppFactory.create(this.mongoClient)

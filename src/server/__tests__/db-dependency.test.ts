@@ -1,12 +1,11 @@
-import { expect } from "vitest"
-import crypto from "crypto"
+import { expect, inject } from "vitest"
 import ExpressTestAppFactory from "@/test/setup/express-test-app-factory"
 
 describe("DB Dependency Integration Tests", () => {
   const testAppFactory = new ExpressTestAppFactory()
 
   beforeAll(async () => {
-    testAppFactory.initialize()
+    testAppFactory.initialize(inject("mongoUri"))
   })
 
   beforeEach(async () => {
