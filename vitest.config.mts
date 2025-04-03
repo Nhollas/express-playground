@@ -11,6 +11,7 @@ export default defineConfig({
     globals: true,
     include: ["src/**/*.test.ts"],
     setupFiles: "./vitest.setup.ts",
+    globalSetup: "./src/test/setup/global-setup.ts",
     coverage: {
       provider: "v8",
       reporter: ["html"],

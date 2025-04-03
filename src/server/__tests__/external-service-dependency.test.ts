@@ -1,21 +1,17 @@
 import { server } from "@/test/mock-service-worker/server"
 import { http, HttpResponse } from "msw"
 import { expect } from "vitest"
-import TestAppFactory from "@/test/setup/test-app-factory"
+import ExpressTestAppFactory from "@/test/setup/express-test-app-factory"
 
 describe("External Service Dependency Integration Tests", () => {
-  const appFactory = new TestAppFactory()
+  const appFactory = new ExpressTestAppFactory()
 
   beforeAll(async () => {
-    await appFactory.initialize()
-  })
-
-  afterAll(async () => {
-    await appFactory.dispose()
+    appFactory.initialize()
   })
 
   beforeEach(async () => {
-    await appFactory.reset()
+    await appFactory.resetDatabase()
   })
 
   test("should return user profile when authenticated", async () => {
@@ -26,7 +22,7 @@ describe("External Service Dependency Integration Tests", () => {
         HttpResponse.json(mockedResponse),
       ),
     )
-    const response = await appFactory.request
+    const response = await appFactory.httpClient
       .get("/api/external/items")
       .expect(200)
 
