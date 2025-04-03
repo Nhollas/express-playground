@@ -9,13 +9,13 @@ class TestAppFactory {
   public request: ReturnType<typeof supertest>
 
   constructor() {
-    this.mongoServer = new MongoMemoryServer()
+    this.mongoServer = null!
     this.mongoClient = null
     this.request = null!
   }
 
   async initialize() {
-    await this.mongoServer.start()
+    this.mongoServer = await MongoMemoryServer.create()
     const mongoUri = this.mongoServer.getUri()
 
     this.mongoClient = new MongoClient(mongoUri)

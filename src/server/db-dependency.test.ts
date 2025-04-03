@@ -1,8 +1,22 @@
 import { expect } from "vitest"
-import { describeTestCase } from "@/test/setup/describe-test-case"
 import crypto from "crypto"
+import TestAppFactory from "@/test/setup/test-app-factory"
 
-describeTestCase("DB Dependency Integration Tests", (appFactory) => {
+describe("DB Dependency Integration Tests", () => {
+  const appFactory = new TestAppFactory()
+
+  beforeAll(async () => {
+    await appFactory.initialize()
+  })
+
+  afterAll(async () => {
+    await appFactory.dispose()
+  })
+
+  beforeEach(async () => {
+    await appFactory.reset()
+  })
+
   test("should return items from the database 1", async () => {
     const db = appFactory.getDb()
     const item = { name: `Item ${crypto.randomUUID()}` }
