@@ -1,20 +1,30 @@
 import { MongoClient, Db } from "mongodb"
 import supertest from "supertest"
 import ExpressAppFactory from "@/server/express-app-factory"
+import { MockAuthenticationService } from "../mocks/mock-authentication-service"
+import { MongoMemoryServer } from "mongodb-memory-server"
 
 class ExpressTestAppFactory {
   private mongoClient: MongoClient
   public httpClient: ReturnType<typeof supertest>
+  public mockAuthService: MockAuthenticationService
 
   constructor() {
     this.mongoClient = null!
     this.httpClient = null!
+    this.mockAuthService = new MockAuthenticationService()
   }
 
-  initialize(mongoUri: string) {
-    this.mongoClient = new MongoClient(mongoUri)
+  async initialize() {
+    const mongoServer = await MongoMemoryServer.create()
 
-    const expressApp = ExpressAppFactory.create(this.mongoClient)
+    this.mongoClient = new MongoClient(mongoServer.getUri())
+
+    const expressApp = ExpressAppFactory.create({
+      dbClient: this.mongoClient,
+      authService: this.mockAuthService,
+    })
+
     this.httpClient = supertest(expressApp)
   }
 
@@ -22,6 +32,7 @@ class ExpressTestAppFactory {
     if (!this.mongoClient) {
       throw new Error("MongoDB client not initialized. Call initialize() first")
     }
+
     return this.mongoClient.db()
   }
 

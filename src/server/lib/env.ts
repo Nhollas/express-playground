@@ -1,7 +1,5 @@
 import { z } from "zod"
-import { config } from "dotenv"
-
-config()
+import "dotenv/config"
 
 const envSchema = z.object({
   MONGODB_URL: z.string().url(),

@@ -1,13 +1,13 @@
 import { server } from "@/test/mock-service-worker/server"
 import { http, HttpResponse } from "msw"
-import { expect, inject } from "vitest"
+import { expect } from "vitest"
 import ExpressTestAppFactory from "@/test/setup/express-test-app-factory"
 
 describe("External Service Dependency Integration Tests", () => {
   const testAppFactory = new ExpressTestAppFactory()
 
   beforeAll(async () => {
-    testAppFactory.initialize(inject("mongoUri"))
+    await testAppFactory.initialize()
   })
 
   beforeEach(async () => {
