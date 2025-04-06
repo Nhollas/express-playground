@@ -6,7 +6,7 @@ export const createAuthMiddleware = (authService: IAuthenticationService) => {
     const user = authService.getUser(req)
 
     if (!user) {
-      res.sendStatus(401).json({ error: "Unauthorized" })
+      res.status(401).json({ error: "Unauthorized" })
     } else {
       next()
     }

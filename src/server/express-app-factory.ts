@@ -3,6 +3,7 @@ import express from "express"
 import type { Express } from "express"
 import { createAuthMiddleware } from "./middleware/auth"
 import { IAuthenticationService } from "./services/auth-service"
+import { getUserHandler } from "./handlers/user-handler"
 
 interface ExpressAppFactoryArgs {
   dbClient: MongoClient
@@ -39,11 +40,7 @@ class ExpressAppFactory {
       res.status(200).json(data)
     })
 
-    app.get("/api/user", (req, res) => {
-      const user = authService.getUser(req)
-
-      res.status(200).json(user)
-    })
+    app.get("/api/user", getUserHandler(authService))
 
     return app
   }
