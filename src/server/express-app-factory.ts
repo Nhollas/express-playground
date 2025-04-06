@@ -1,9 +1,13 @@
 import { MongoClient } from "mongodb"
 import express from "express"
 import type { Express } from "express"
-import { createAuthMiddleware } from "./middleware/auth"
+import { authMiddleware } from "./middleware/auth"
 import { IAuthenticationService } from "./services/auth-service"
-import { getUserHandler } from "./handlers/user-handler"
+import { getUserHandler } from "./handlers/user-handlers"
+import {
+  getItemsFromDbHandler,
+  getItemsFromServiceHandler,
+} from "./handlers/item-handlers"
 
 interface ExpressAppFactoryArgs {
   dbClient: MongoClient
@@ -16,30 +20,10 @@ class ExpressAppFactory {
 
     app.use(express.json())
 
-    const authMiddleware = createAuthMiddleware(authService)
-    app.use(authMiddleware)
+    app.use(authMiddleware(authService))
 
-    app.get("/api/db/items", async (_, res) => {
-      const items = await dbClient
-        .db("test")
-        .collection("items")
-        .find()
-        .toArray()
-
-      res.status(200).json({
-        items: items.map((item) => ({
-          name: item.name,
-        })),
-      })
-    })
-
-    app.get("/api/external/items", async (req, res) => {
-      const response = await fetch("https://localhost:8080/api/posts")
-      const data = await response.json()
-
-      res.status(200).json(data)
-    })
-
+    app.get("/api/db/items", getItemsFromDbHandler(dbClient))
+    app.get("/api/external/items", getItemsFromServiceHandler())
     app.get("/api/user", getUserHandler(authService))
 
     return app
