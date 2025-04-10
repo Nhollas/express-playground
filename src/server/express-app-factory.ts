@@ -5,6 +5,7 @@ import { authMiddleware } from "./middleware/auth"
 import { IAuthenticationService } from "./services/auth-service"
 import { getUserHandler } from "./handlers/user-handlers"
 import {
+  createItemHandler,
   getItemsFromDbHandler,
   getItemsFromServiceHandler,
 } from "./handlers/item-handlers"
@@ -25,6 +26,7 @@ class ExpressAppFactory {
     app.get("/api/db/items", getItemsFromDbHandler(dbClient))
     app.get("/api/external/items", getItemsFromServiceHandler())
     app.get("/api/user", getUserHandler(authService))
+    app.post("/api/items", createItemHandler(dbClient))
 
     return app
   }
