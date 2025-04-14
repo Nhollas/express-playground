@@ -25,11 +25,11 @@ type Actions<TValue, TKey extends string | symbol | number, TResult> = Record<
 >
 
 /**
- * Creates a matcher function based on a set of patterns.
+ * Builds a matcher function based on a set of patterns.
  * @param patterns An array of [predicate, key] tuples. The first matching predicate determines the key.
  * @returns A function that accepts an actions object and returns the final execution function.
  */
-function createMatcher<TValue, TKey extends string | symbol | number>(
+function buildMatcher<TValue, TKey extends string | symbol | number>(
   patterns: Pattern<TValue, TKey>[],
 ) {
   /**
@@ -62,7 +62,7 @@ function createMatcher<TValue, TKey extends string | symbol | number>(
 // --- Example Usage ---
 
 // Step 1: Create a matcher instance with specific patterns
-const partnerMatcher = createMatcher<string, PartnerType>([
+const partnerMatcher = buildMatcher<string, PartnerType>([
   [(value) => value === adminPartnerId, PartnerType.Admin],
   [(value) => value === superAdminPartnerId, PartnerType.SuperAdmin],
   // Default/fallback pattern - must come last
@@ -95,3 +95,89 @@ const partnerDescription = partnerMatcher<string>({
 console.log("\n--- Description Example ---")
 console.log(partnerDescription(adminPartnerId)) // Output: User -1 is an Admin.
 console.log(partnerDescription("yetAnotherId")) // Output: User yetAnotherId is a standard partner.
+
+// --- Example without Enums (Using String Literals) ---
+
+// Define string literal type for keys
+type RangeCategory = "low" | "medium" | "high" | "out-of-bounds"
+
+// Step 1: Create matcher with number patterns and string keys
+const numberRangeMatcher = buildMatcher<number, RangeCategory>([
+  [(n) => n >= 0 && n < 10, "low"],
+  [(n) => n >= 10 && n < 100, "medium"],
+  [(n) => n >= 100, "high"],
+  // Fallback for negative or other numbers
+  [() => true, "out-of-bounds"],
+])
+
+// Step 2: Define actions using string keys
+const numberCategorizer = numberRangeMatcher<string>({
+  // Action keys must match the string literals defined in RangeCategory
+  low: (num) => `Number ${num} is in the low range.`,
+  medium: (num) => `Number ${num} is in the medium range.`,
+  high: (num) => `Number ${num} is in the high range.`,
+  "out-of-bounds": (num) => `Number ${num} is out of defined bounds.`,
+})
+
+// Step 3: Execute the final function
+console.log("\n--- Number Range Example ---")
+console.log(numberCategorizer(5)) // Output: Number 5 is in the low range.
+console.log(numberCategorizer(50)) // Output: Number 50 is in the medium range.
+console.log(numberCategorizer(150)) // Output: Number 150 is in the high range.
+console.log(numberCategorizer(-1)) // Output: Number -1 is out of defined bounds.
+
+// --- Example with Object Value ---
+
+// Define the object type
+interface UserData {
+  role: "guest" | "member" | "admin"
+  isActive: boolean
+}
+
+// Define keys for the match result
+type UserStatus =
+  | "ActiveAdmin"
+  | "InactiveAdmin"
+  | "ActiveMember"
+  | "Guest"
+  | "OtherInactive"
+
+// Step 1: Create matcher using UserData properties
+const userStatusMatcher = buildMatcher<UserData, UserStatus>([
+  // Predicates access properties of the UserData object (user)
+  [(user) => user.role === "admin" && user.isActive, "ActiveAdmin"],
+  [(user) => user.role === "admin" && !user.isActive, "InactiveAdmin"],
+  [(user) => user.role === "member" && user.isActive, "ActiveMember"],
+  [(user) => user.role === "guest", "Guest"], // Guests are guests regardless of active status in this example
+  // Fallback for any other inactive user (e.g., inactive member)
+  [() => true, "OtherInactive"],
+])
+
+// Step 2: Define actions for user statuses
+const userStatusNotifier = userStatusMatcher<void>({
+  // Action functions receive the full UserData object
+  ActiveAdmin: (user) =>
+    console.log(`Notifying Active Admin ${JSON.stringify(user)}`),
+  InactiveAdmin: (user) =>
+    console.log(`Logging Inactive Admin ${JSON.stringify(user)}`),
+  ActiveMember: (user) =>
+    console.log(`Welcoming Active Member ${JSON.stringify(user)}`),
+  Guest: (user) =>
+    console.log(`Showing Guest Page for ${JSON.stringify(user)}`),
+  OtherInactive: (user) =>
+    console.log(`Handling Other Inactive User ${JSON.stringify(user)}`),
+})
+
+// Step 3: Execute with different UserData objects
+console.log("\n--- User Status Example ---")
+const user1: UserData = { role: "admin", isActive: true }
+const user2: UserData = { role: "admin", isActive: false }
+const user3: UserData = { role: "member", isActive: true }
+const user4: UserData = { role: "member", isActive: false }
+const user5: UserData = { role: "guest", isActive: true } // isActive doesn't matter for guest pattern
+
+userStatusNotifier(user1) // Output: Notifying Active Admin {"role":"admin","isActive":true}
+userStatusNotifier(user2) // Output: Logging Inactive Admin {"role":"admin","isActive":false}
+userStatusNotifier(user3) // Output: Welcoming Active Member {"role":"member","isActive":true}
+userStatusNotifier(user4) // Output: Handling Other Inactive User {"role":"member","isActive":false}
+userStatusNotifier(user5) // Output: Showing Guest Page for {"role":"guest","isActive":true}
