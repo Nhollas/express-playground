@@ -1,5 +1,7 @@
 # Express Playground
 
+This repository serves as a playground to demonstrate how an Express.js application can be structured for enhanced testability. Key practices include separating concerns (e.g., routes, controllers, services), using dependency injection, and leveraging testing frameworks like Vitest for unit and integration tests.
+
 ## Setting Up The Project
 
 #### Prerequisites
