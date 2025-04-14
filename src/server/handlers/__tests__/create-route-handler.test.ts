@@ -3,10 +3,11 @@ import { z } from "zod"
 import { createRouteHandler } from "../create-route-handler"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
-const mockRequest = (body = {}, query = {}) =>
+const mockRequest = (body = {}, query = {}, params = {}) =>
   ({
     body,
     query,
+    params,
   }) as Request
 
 const mockResponse = () => {
@@ -117,6 +118,50 @@ describe("createRouteHandler", () => {
     })
   })
 
+  describe("params validation", () => {
+    it("should validate URL parameters", async () => {
+      const paramsSchema = z.object({
+        userId: z.string(),
+        taskId: z.string(),
+      })
+
+      const handler = createRouteHandler()
+        .validateParams(paramsSchema)
+        .handle(({ data }) => {
+          expect(data.params).toEqual({ userId: "123", taskId: "456" })
+        })
+
+      const req = mockRequest({}, {}, { userId: "123", taskId: "456" })
+      const res = mockResponse()
+
+      await handler(req, res, mockNext)
+
+      expect(mockNext).not.toHaveBeenCalled()
+    })
+
+    it("should return validation error for invalid params", async () => {
+      const paramsSchema = z.object({
+        userId: z.string().uuid(),
+      })
+
+      const handler = createRouteHandler()
+        .validateParams(paramsSchema)
+        .handle(() => {})
+
+      const req = mockRequest({}, {}, { userId: "not-a-valid-uuid" })
+      const res = mockResponse()
+
+      await handler(req, res, mockNext)
+
+      expect(res.status).toHaveBeenCalledWith(400)
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          error: "Validation Error",
+        }),
+      )
+    })
+  })
+
   describe("combined validation", () => {
     it("should validate both body and query parameters", async () => {
       const bodySchema = z.object({
@@ -136,6 +181,41 @@ describe("createRouteHandler", () => {
         })
 
       const req = mockRequest({ name: "John" }, { id: "123" })
+      const res = mockResponse()
+
+      await handler(req, res, mockNext)
+
+      expect(mockNext).not.toHaveBeenCalled()
+    })
+
+    it("should validate body, query, and params together", async () => {
+      const bodySchema = z.object({
+        name: z.string(),
+      })
+
+      const querySchema = z.object({
+        sort: z.string(),
+      })
+
+      const paramsSchema = z.object({
+        userId: z.string(),
+      })
+
+      const handler = createRouteHandler()
+        .validateBody(bodySchema)
+        .validateQuery(querySchema)
+        .validateParams(paramsSchema)
+        .handle(({ data }) => {
+          expect(data.body).toEqual({ name: "John" })
+          expect(data.query).toEqual({ sort: "desc" })
+          expect(data.params).toEqual({ userId: "123" })
+        })
+
+      const req = mockRequest(
+        { name: "John" },
+        { sort: "desc" },
+        { userId: "123" },
+      )
       const res = mockResponse()
 
       await handler(req, res, mockNext)
@@ -180,6 +260,7 @@ describe("createRouteHandler", () => {
           data: expect.objectContaining({
             body: expect.any(Object),
             query: expect.any(Object),
+            params: expect.any(Object),
           }),
         }),
       )
