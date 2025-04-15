@@ -57,10 +57,25 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
 
         // Validate body
         if (this.bodySchema) {
+          if (
+            req.body == null ||
+            (typeof req.body === "object" && Object.keys(req.body).length === 0)
+          ) {
+            res.status(422).json(
+              ProblemDetails.create({
+                type: "https://example.com/probs/validation",
+                title: "Your request body didn't validate.",
+                status: 422,
+                detail: "Request body is required",
+              }),
+            )
+            return
+          }
           try {
             body = this.bodySchema.parse(req.body)
           } catch (error) {
             if (error instanceof z.ZodError) {
+              console.log("bodyerror", error.errors)
               res.status(422).json(
                 ProblemDetails.create({
                   type: "https://example.com/probs/validation",
