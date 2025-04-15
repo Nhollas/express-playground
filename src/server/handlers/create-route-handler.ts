@@ -49,11 +49,11 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
   handle(
     fn: HandlerFunction<B, Q, P>,
   ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-    return async (req: Request, res: Response, next: NextFunction) => {
+    return async (req, res, next) => {
       try {
-        let body: B = {} as B
-        let query: Q = {} as Q
-        let params: P = {} as P
+        let body: B | undefined
+        let query: Q | undefined
+        let params: P | undefined
 
         // Validate body
         if (this.bodySchema) {
@@ -75,7 +75,6 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
             body = this.bodySchema.parse(req.body)
           } catch (error) {
             if (error instanceof z.ZodError) {
-              console.log("bodyerror", error.errors)
               res.status(422).json(
                 ProblemDetails.create({
                   type: "https://example.com/probs/validation",
@@ -110,7 +109,6 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
                   })),
                 }),
               )
-
               return
             }
             throw error
@@ -134,7 +132,6 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
                   })),
                 }),
               )
-
               return
             }
             throw error
@@ -145,7 +142,11 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
           req,
           res,
           next,
-          data: { body, query, params },
+          data: {
+            body: (body as B) ?? ({} as B),
+            query: (query as Q) ?? ({} as Q),
+            params: (params as P) ?? ({} as P),
+          },
         })
       } catch (error) {
         next(error)
