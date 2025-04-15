@@ -18,10 +18,10 @@ type Pattern<TValue, TKey extends string | symbol | number> = [
 ]
 
 // Type for the actions object: maps keys to action functions
-// Action function receives the matched value and the specific key
+// Action function receives only the matched value
 type Actions<TValue, TKey extends string | symbol | number, TResult> = Record<
   TKey,
-  (value: TValue, key: TKey) => TResult
+  (value: TValue) => TResult
 >
 
 /**
@@ -48,10 +48,8 @@ function buildMatcher<TValue, TKey extends string | symbol | number>(
         if (predicate(value)) {
           const action = actions[key]
           if (action) {
-            // Execute the action associated with the matched key
-            return action(value, key)
+            return action(value)
           }
-          break // Found the first matching pattern, stop searching
         }
       }
       return undefined
@@ -181,3 +179,84 @@ userStatusNotifier(user2) // Output: Logging Inactive Admin {"role":"admin","isA
 userStatusNotifier(user3) // Output: Welcoming Active Member {"role":"member","isActive":true}
 userStatusNotifier(user4) // Output: Handling Other Inactive User {"role":"member","isActive":false}
 userStatusNotifier(user5) // Output: Showing Guest Page for {"role":"guest","isActive":true}
+
+// --- Example: Returning Different Types (e.g., objects) ---
+const errorMatcher = buildMatcher<number, "NotFound" | "Forbidden" | "Other">([
+  [(code) => code === 404, "NotFound"],
+  [(code) => code === 403, "Forbidden"],
+  [() => true, "Other"],
+])
+
+const errorResponse = errorMatcher<{ message: string; retry: boolean }>({
+  NotFound: () => ({ message: "Resource not found", retry: false }),
+  Forbidden: () => ({ message: "Access denied", retry: false }),
+  Other: (code) => ({ message: `Error code: ${code}`, retry: true }),
+})
+
+console.log("\n--- Error Matcher Example ---")
+console.log(errorResponse(404)) // { message: "Resource not found", retry: false }
+console.log(errorResponse(403)) // { message: "Access denied", retry: false }
+console.log(errorResponse(500)) // { message: `Error code: 500`, retry: true }
+
+// --- Example: Composing Matchers ---
+const isEven = (n: number) => n % 2 === 0
+const isPositive = (n: number) => n > 0
+
+const evenOddMatcher = buildMatcher<number, "Even" | "Odd">([
+  [isEven, "Even"],
+  [() => true, "Odd"],
+])
+
+const signMatcher = buildMatcher<number, "Positive" | "Negative" | "Zero">([
+  [isPositive, "Positive"],
+  [(n) => n < 0, "Negative"],
+  [() => true, "Zero"],
+])
+
+function describeNumber(n: number) {
+  const evenOdd = evenOddMatcher<string>({
+    Even: () => "even",
+    Odd: () => "odd",
+  })(n)
+  const sign = signMatcher<string>({
+    Positive: () => "positive",
+    Negative: () => "negative",
+    Zero: () => "zero",
+  })(n)
+  return `Number ${n} is ${sign} and ${evenOdd}.`
+}
+
+console.log("\n--- Composed Matcher Example ---")
+console.log(describeNumber(4)) // Number 4 is positive and even.
+console.log(describeNumber(-3)) // Number -3 is negative and odd.
+console.log(describeNumber(0)) // Number 0 is zero and even.
+
+// --- Example: Dynamic Patterns ---
+function makeRoleMatcher(roles: string[]) {
+  return buildMatcher<string, "Known" | "Unknown">([
+    [(role) => roles.includes(role), "Known"],
+    [() => true, "Unknown"],
+  ])
+}
+const dynamicRoleMatcher = makeRoleMatcher(["admin", "user", "guest"])
+const roleResult = dynamicRoleMatcher<string>({
+  Known: (role) => `Role ${role} is recognized.`,
+  Unknown: (role) => `Role ${role} is not recognized.`,
+})
+
+console.log("\n--- Dynamic Pattern Example ---")
+console.log(roleResult("admin")) // Role admin is recognized.
+console.log(roleResult("hacker")) // Role hacker is not recognized.
+
+// --- Example: Exhaustiveness Checking ---
+// Uncommenting the following will cause a TypeScript error if a key is missing
+/*
+const incompleteMatcher = buildMatcher<number, "A" | "B">([
+  [(n) => n === 1, "A"],
+  [() => true, "B"],
+])
+const incompleteActions = incompleteMatcher<string>({
+  A: () => "A",
+  // B: () => "B", // TypeScript will error if this is missing
+})
+*/

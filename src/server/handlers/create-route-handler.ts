@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express"
 import { z } from "zod"
+import { ProblemDetails } from "../lib/problem-details"
 
 interface RouterContext<B = unknown, Q = unknown, P = unknown> {
   req: Request
@@ -45,34 +46,94 @@ class RouterHandler<B = unknown, Q = unknown, P = unknown> {
     return handler
   }
 
-  handle(fn: HandlerFunction<B, Q, P>) {
+  handle(
+    fn: HandlerFunction<B, Q, P>,
+  ): (req: Request, res: Response, next: NextFunction) => Promise<void> {
     return async (req: Request, res: Response, next: NextFunction) => {
       try {
-        const validatedData = {
-          body: this.bodySchema ? this.bodySchema.parse(req.body) : ({} as B),
-          query: this.querySchema
-            ? this.querySchema.parse(req.query)
-            : ({} as Q),
-          params: this.paramsSchema
-            ? this.paramsSchema.parse(req.params)
-            : ({} as P),
+        let body: B = {} as B
+        let query: Q = {} as Q
+        let params: P = {} as P
+
+        // Validate body
+        if (this.bodySchema) {
+          try {
+            body = this.bodySchema.parse(req.body)
+          } catch (error) {
+            if (error instanceof z.ZodError) {
+              res.status(422).json(
+                ProblemDetails.create({
+                  type: "https://example.com/probs/validation",
+                  title: "Your request body didn't validate.",
+                  status: 422,
+                  "invalid-body": error.errors.map((e) => ({
+                    property: e.path.join("."),
+                    message: e.message,
+                  })),
+                }),
+              )
+              return
+            }
+            throw error
+          }
+        }
+
+        // Validate query
+        if (this.querySchema) {
+          try {
+            query = this.querySchema.parse(req.query)
+          } catch (error) {
+            if (error instanceof z.ZodError) {
+              res.status(400).json(
+                ProblemDetails.create({
+                  type: "https://example.com/probs/validation",
+                  title: "Your request queries didn't validate.",
+                  status: 400,
+                  "invalid-queries": error.errors.map((e) => ({
+                    property: e.path.join("."),
+                    message: e.message,
+                  })),
+                }),
+              )
+
+              return
+            }
+            throw error
+          }
+        }
+
+        // Validate params
+        if (this.paramsSchema) {
+          try {
+            params = this.paramsSchema.parse(req.params)
+          } catch (error) {
+            if (error instanceof z.ZodError) {
+              res.status(400).json(
+                ProblemDetails.create({
+                  type: "https://example.com/probs/validation",
+                  title: "Your request parameters didn't validate.",
+                  status: 400,
+                  "invalid-params": error.errors.map((e) => ({
+                    property: e.path.join("."),
+                    message: e.message,
+                  })),
+                }),
+              )
+
+              return
+            }
+            throw error
+          }
         }
 
         await fn({
           req,
           res,
           next,
-          data: validatedData,
+          data: { body, query, params },
         })
       } catch (error) {
-        if (error instanceof z.ZodError) {
-          res.status(400).json({
-            error: "Validation Error",
-            details: error.errors,
-          })
-        } else {
-          next(error)
-        }
+        next(error)
       }
     }
   }

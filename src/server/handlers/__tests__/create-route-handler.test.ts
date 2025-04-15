@@ -65,12 +65,18 @@ describe("createRouteHandler", () => {
 
       await handler(req, res, mockNext)
 
-      expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: "Validation Error",
-        }),
-      )
+      expect(res.status).toHaveBeenCalledWith(422)
+      expect(res.json).toHaveBeenCalledWith({
+        type: "https://example.com/probs/validation",
+        title: "Your request body didn't validate.",
+        status: 422,
+        "invalid-body": [
+          {
+            message: "Expected number, received string",
+            property: "age",
+          },
+        ],
+      })
     })
   })
 
@@ -110,11 +116,17 @@ describe("createRouteHandler", () => {
       await handler(req, res, mockNext)
 
       expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: "Validation Error",
-        }),
-      )
+      expect(res.json).toHaveBeenCalledWith({
+        type: "https://example.com/probs/validation",
+        title: "Your request queries didn't validate.",
+        status: 400,
+        "invalid-queries": [
+          {
+            message: "Expected number, received string",
+            property: "page",
+          },
+        ],
+      })
     })
   })
 
@@ -154,11 +166,17 @@ describe("createRouteHandler", () => {
       await handler(req, res, mockNext)
 
       expect(res.status).toHaveBeenCalledWith(400)
-      expect(res.json).toHaveBeenCalledWith(
-        expect.objectContaining({
-          error: "Validation Error",
-        }),
-      )
+      expect(res.json).toHaveBeenCalledWith({
+        type: "https://example.com/probs/validation",
+        title: "Your request parameters didn't validate.",
+        status: 400,
+        "invalid-params": [
+          {
+            message: "Invalid uuid",
+            property: "userId",
+          },
+        ],
+      })
     })
   })
 
